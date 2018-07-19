@@ -31,6 +31,8 @@
  *            IT8726F  Super I/O chip w/LPC interface
  *            IT8728F  Super I/O chip w/LPC interface
  *            IT8732F  Super I/O chip w/LPC interface
+ *            IT8736F  Super I/O chip w/LPC interface
+ *            IT8738E  Super I/O chip w/LPC interface
  *            IT8758E  Super I/O chip w/LPC interface
  *            IT8771E  Super I/O chip w/LPC interface
  *            IT8772E  Super I/O chip w/LPC interface
@@ -83,6 +85,7 @@
 #define DRVNAME "it87"
 
 enum chips { it87, it8712, it8716, it8718, it8720, it8721, it8728, it8732,
+	     it8736, it8738,
 	     it8771, it8772, it8781, it8782, it8783, it8786, it8790,
 	     it8792, it8603, it8606, it8607, it8613, it8620, it8622, it8625,
 	     it8628, it8655, it8665, it8686 };
@@ -179,6 +182,8 @@ static inline void superio_exit(int ioreg, bool doexit)
 #define IT8726F_DEVID 0x8726
 #define IT8728F_DEVID 0x8728
 #define IT8732F_DEVID 0x8732
+#define IT8736F_DEVID 0x8736
+#define IT8738E_DEVID 0x8738
 #define IT8792E_DEVID 0x8733
 #define IT8771E_DEVID 0x8771
 #define IT8772E_DEVID 0x8772
@@ -245,11 +250,11 @@ static bool fix_pwm_polarity;
 
 /*----- The IT87 registers -----*/
 
-#define IT87_REG_CONFIG        0x00
+#define IT87_REG_CONFIG		0x00
 
-#define IT87_REG_ALARM1        0x01
-#define IT87_REG_ALARM2        0x02
-#define IT87_REG_ALARM3        0x03
+#define IT87_REG_ALARM1		0x01
+#define IT87_REG_ALARM2		0x02
+#define IT87_REG_ALARM3		0x03
 
 #define IT87_REG_BANK		0x06
 
@@ -257,18 +262,18 @@ static bool fix_pwm_polarity;
  * The IT8718F and IT8720F have the VID value in a different register, in
  * Super-I/O configuration space.
  */
-#define IT87_REG_VID           0x0a
+#define IT87_REG_VID		0x0a
 
 /* Interface Selection register on other chips */
-#define IT87_REG_IFSEL         0x0a
+#define IT87_REG_IFSEL		0x0a
 
 /*
  * The IT8705F and IT8712F earlier than revision 0x08 use register 0x0b
  * for fan divisors. Later IT8712F revisions must use 16-bit tachometer
  * mode.
  */
-#define IT87_REG_FAN_DIV       0x0b
-#define IT87_REG_FAN_16BIT     0x0c
+#define IT87_REG_FAN_DIV	0x0b
+#define IT87_REG_FAN_16BIT	0x0c
 
 /*
  * Monitors:
@@ -294,8 +299,8 @@ static const u8 IT87_REG_TEMP_OFFSET[] = { 0x56, 0x57, 0x59, 0x5a, 0x90, 0x91 };
 static const u8 IT87_REG_TEMP_OFFSET_8686[] = {
 					0x56, 0x57, 0x59, 0x90, 0x91, 0x92 };
 
-#define IT87_REG_FAN_MAIN_CTRL 0x13
-#define IT87_REG_FAN_CTL       0x14
+#define IT87_REG_FAN_MAIN_CTRL	0x13
+#define IT87_REG_FAN_CTL	0x14
 
 static const u8 IT87_REG_PWM[] =	{ 0x15, 0x16, 0x17, 0x7f, 0xa7, 0xaf };
 static const u8 IT87_REG_PWM_8665[] =	{ 0x15, 0x16, 0x17, 0x1e, 0x1f, 0x92 };
@@ -305,10 +310,10 @@ static const u8 IT87_REG_PWM_DUTY[] =	{ 0x63, 0x6b, 0x73, 0x7b, 0xa3, 0xab };
 static const u8 IT87_REG_VIN[]	= { 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26,
 				    0x27, 0x28, 0x2f, 0x2c, 0x2d, 0x2e };
 
-#define IT87_REG_TEMP(nr)      (0x29 + (nr))
+#define IT87_REG_TEMP(nr)	(0x29 + (nr))
 
-#define IT87_REG_VIN_MAX(nr)   (0x30 + (nr) * 2)
-#define IT87_REG_VIN_MIN(nr)   (0x31 + (nr) * 2)
+#define IT87_REG_VIN_MAX(nr)	(0x30 + (nr) * 2)
+#define IT87_REG_VIN_MIN(nr)	(0x31 + (nr) * 2)
 
 static const u8 IT87_REG_TEMP_HIGH[] =	{ 0x40, 0x42, 0x44, 0x46, 0xb4, 0xb6 };
 static const u8 IT87_REG_TEMP_LOW[] =	{ 0x41, 0x43, 0x45, 0x47, 0xb5, 0xb7 };
@@ -318,12 +323,12 @@ static const u8 IT87_REG_TEMP_HIGH_8686[] = {
 static const u8 IT87_REG_TEMP_LOW_8686[] = {
 					0x41, 0x43, 0x45, 0xb5, 0xb7, 0xb9 };
 
-#define IT87_REG_VIN_ENABLE    0x50
-#define IT87_REG_TEMP_ENABLE   0x51
-#define IT87_REG_TEMP_EXTRA    0x55
-#define IT87_REG_BEEP_ENABLE   0x5c
+#define IT87_REG_VIN_ENABLE	0x50
+#define IT87_REG_TEMP_ENABLE	0x51
+#define IT87_REG_TEMP_EXTRA	0x55
+#define IT87_REG_BEEP_ENABLE	0x5c
 
-#define IT87_REG_CHIPID        0x58
+#define IT87_REG_CHIPID		0x58
 
 static const u8 IT87_REG_AUTO_BASE[] = { 0x60, 0x68, 0x70, 0x78, 0xa0, 0xa8 };
 
@@ -466,12 +471,39 @@ static const struct it87_devices it87_devices[] = {
 		.features = FEAT_NEWER_AUTOPWM | FEAT_16BIT_FANS
 		  | FEAT_TEMP_OLD_PECI | FEAT_TEMP_PECI
 		  | FEAT_10_9MV_ADC | FEAT_IN7_INTERNAL | FEAT_FOUR_FANS
-		  | FEAT_FOUR_PWM | FEAT_FANCTL_ONOFF,
+		  | FEAT_FOUR_PWM | FEAT_FANCTL_ONOFF | FEAT_SCALING,
 		.num_temp_limit = 3,
 		.num_temp_offset = 3,
 		.num_temp_map = 3,
 		.peci_mask = 0x07,
 		.old_peci_mask = 0x02,	/* Actually reports PCH */
+	},
+	[it8736] = {
+		.name = "it8736",
+		.model = "IT8736F",
+		.features = FEAT_16BIT_FANS
+		  | FEAT_TEMP_OLD_PECI | FEAT_TEMP_PECI
+		  | FEAT_10_9MV_ADC | FEAT_IN7_INTERNAL | FEAT_FOUR_FANS
+		  | FEAT_FANCTL_ONOFF | FEAT_SCALING,
+		.num_temp_limit = 3,
+		.num_temp_offset = 3,
+		.num_temp_map = 3,
+		.peci_mask = 0x07,
+		.old_peci_mask = 0x02,	/* Actually reports PCH */
+	},
+	[it8738] = {
+		.name = "it8738",
+		.model = "IT8738E",
+		.features = FEAT_NEWER_AUTOPWM | FEAT_16BIT_FANS
+		  | FEAT_TEMP_OLD_PECI | FEAT_TEMP_PECI
+		  | FEAT_10_9MV_ADC | FEAT_IN7_INTERNAL
+		  | FEAT_FANCTL_ONOFF | FEAT_SCALING
+		  | FEAT_AVCC3,
+		.num_temp_limit = 3,
+		.num_temp_offset = 3,
+		.num_temp_map = 3,
+		.peci_mask = 0x07,
+		.old_peci_mask = 0x02,
 	},
 	[it8771] = {
 		.name = "it8771",
@@ -672,7 +704,7 @@ static const struct it87_devices it87_devices[] = {
 		.features = FEAT_NEWER_AUTOPWM | FEAT_16BIT_FANS
 		  | FEAT_AVCC3 | FEAT_NEW_TEMPMAP | FEAT_SCALING
 		  | FEAT_10_9MV_ADC | FEAT_IN7_INTERNAL | FEAT_BANK_SEL
-		  | FEAT_MMIO,
+		  | FEAT_SIX_TEMP | FEAT_MMIO,
 		.num_temp_limit = 6,
 		.num_temp_offset = 6,
 		.num_temp_map = 6,
@@ -684,7 +716,7 @@ static const struct it87_devices it87_devices[] = {
 		.features = FEAT_NEWER_AUTOPWM | FEAT_16BIT_FANS
 		  | FEAT_AVCC3 | FEAT_NEW_TEMPMAP | FEAT_SCALING
 		  | FEAT_10_9MV_ADC | FEAT_IN7_INTERNAL | FEAT_SIX_FANS
-		  | FEAT_SIX_PWM | FEAT_BANK_SEL | FEAT_MMIO,
+		  | FEAT_SIX_PWM | FEAT_BANK_SEL | FEAT_MMIO | FEAT_SIX_TEMP,
 		.num_temp_limit = 6,
 		.num_temp_offset = 6,
 		.num_temp_map = 6,
@@ -772,6 +804,7 @@ struct it87_data {
 	u8 old_peci_mask;
 
 	u8 smbus_bitmap;	/* !=0 if SMBus needs to be disabled */
+	u8 saved_bank;		/* saved bank register value */
 	u8 ec_special_config;	/* EC special config register restore value */
 	u8 sioaddr;		/* SIO port address */
 	bool doexit;		/* true if exit from sio config is ok */
@@ -926,7 +959,7 @@ static u8 temp_map_from_reg(const struct it87_data *data, u8 reg)
 {
 	u8 map;
 
-	map  = (reg >> data->pwm_temp_map_shift) & data->pwm_temp_map_mask;
+	map = (reg >> data->pwm_temp_map_shift) & data->pwm_temp_map_mask;
 	if (map >= data->pwm_num_temp_map)	/* map is 0-based */
 		map = 0;
 
@@ -962,6 +995,18 @@ static const unsigned int pwm_freq[8] = {
 	750000,
 };
 
+static int _it87_io_read(struct it87_data *data, u16 reg)
+{
+	outb_p(reg, data->addr + IT87_ADDR_REG_OFFSET);
+	return inb_p(data->addr + IT87_DATA_REG_OFFSET);
+}
+
+static void _it87_io_write(struct it87_data *data, u16 reg, u8 value)
+{
+	outb_p(reg, data->addr + IT87_ADDR_REG_OFFSET);
+	outb_p(value, data->addr + IT87_DATA_REG_OFFSET);
+}
+
 static int smbus_disable(struct it87_data *data)
 {
 	int err;
@@ -974,6 +1019,8 @@ static int smbus_disable(struct it87_data *data)
 		superio_outb(data->sioaddr, IT87_SPECIAL_CFG_REG,
 			     data->ec_special_config & ~data->smbus_bitmap);
 		superio_exit(data->sioaddr, data->doexit);
+		if (has_bank_sel(data) && !data->mmio)
+			data->saved_bank = _it87_io_read(data, IT87_REG_BANK);
 	}
 	return 0;
 }
@@ -983,6 +1030,8 @@ static int smbus_enable(struct it87_data *data)
 	int err;
 
 	if (data->smbus_bitmap) {
+		if (has_bank_sel(data) && !data->mmio)
+			_it87_io_write(data, IT87_REG_BANK, data->saved_bank);
 		err = superio_enter(data->sioaddr);
 		if (err)
 			return err;
@@ -993,18 +1042,6 @@ static int smbus_enable(struct it87_data *data)
 		superio_exit(data->sioaddr, data->doexit);
 	}
 	return 0;
-}
-
-static int _it87_io_read(struct it87_data *data, u16 reg)
-{
-	outb_p(reg, data->addr + IT87_ADDR_REG_OFFSET);
-	return inb_p(data->addr + IT87_DATA_REG_OFFSET);
-}
-
-static void _it87_io_write(struct it87_data *data, u16 reg, u8 value)
-{
-	outb_p(reg, data->addr + IT87_ADDR_REG_OFFSET);
-	outb_p(value, data->addr + IT87_DATA_REG_OFFSET);
 }
 
 static u8 it87_io_set_bank(struct it87_data *data, u8 bank)
@@ -1498,7 +1535,7 @@ static int get_temp_type(struct it87_data *data, int index)
 	if ((has_temp_peci(data, index) && (reg >> 6 == index + 1)) ||
 	    (has_temp_old_peci(data, index) && (extra & 0x80)))
 		type = ttype;		/* Intel PECI or AMDTSI */
-	if (reg & BIT(index))
+	else if (reg & BIT(index))
 		type = 3;		/* thermal diode */
 	else if (reg & BIT(index + 3))
 		type = 4;		/* thermistor */
@@ -1945,7 +1982,7 @@ static ssize_t set_pwm_freq(struct device *dev, struct device_attribute *attr,
 	val *= has_newer_autopwm(data) ? 256 : 128;
 
 	/* Search for the nearest available frequency */
-	for (i = 0; i < 7; i++) {
+	for (i = 0; i < ARRAY_SIZE(pwm_freq) - 1; i++) {
 		if (val > (pwm_freq[i] + pwm_freq[i + 1]) / 2)
 			break;
 	}
@@ -3007,6 +3044,12 @@ static int __init it87_find(int sioaddr, unsigned short *address,
 	case IT8732F_DEVID:
 		sio_data->type = it8732;
 		break;
+	case IT8736F_DEVID:
+		sio_data->type = it8736;
+		break;
+	case IT8738E_DEVID:
+		sio_data->type = it8738;
+		break;
 	case IT8792E_DEVID:
 		sio_data->type = it8792;
 		/*
@@ -3378,7 +3421,8 @@ static int __init it87_find(int sioaddr, unsigned short *address,
 
 		sio_data->beep_pin = superio_inb(sioaddr,
 						 IT87_SIO_BEEP_PIN_REG) & 0x3f;
-	} else if (sio_data->type == it8732) {
+	} else if (sio_data->type == it8732 || sio_data->type == it8736 ||
+		   sio_data->type == it8738) {
 		int reg;
 
 		superio_select(sioaddr, GPIO);
@@ -3400,9 +3444,11 @@ static int __init it87_find(int sioaddr, unsigned short *address,
 			sio_data->skip_fan |= BIT(3);
 
 		/* Check if AVCC is on VIN3 */
-		reg = superio_inb(sioaddr, IT87_SIO_PINX2_REG);
-		if (reg & BIT(0))
-			sio_data->internal |= BIT(0);
+		if (sio_data->type != it8738) {
+			reg = superio_inb(sioaddr, IT87_SIO_PINX2_REG);
+			if (reg & BIT(0))
+				sio_data->internal |= BIT(0);
+		}
 
 		sio_data->beep_pin = superio_inb(sioaddr,
 						 IT87_SIO_BEEP_PIN_REG) & 0x3f;
@@ -3440,15 +3486,9 @@ static int __init it87_find(int sioaddr, unsigned short *address,
 		reg2d = superio_inb(sioaddr, IT87_SIO_PINX4_REG);
 		regd3 = superio_inb(sioaddr, IT87_SIO_GPIO9_REG);
 
-		/* Check for pwm2, fan2 */
+		/* Check for pwm2 */
 		if (reg29 & BIT(1))
 			sio_data->skip_pwm |= BIT(1);
-		/*
-		 * Note: Table 6-1 in datasheet claims that FAN_TAC2
-		 * would be enabled with 29h[2]=0.
-		 */
-		if (reg2d & BIT(4))
-			sio_data->skip_fan |= BIT(1);
 
 		/* Check for pwm3, fan3 */
 		if (reg27 & BIT(6))
@@ -3456,28 +3496,38 @@ static int __init it87_find(int sioaddr, unsigned short *address,
 		if (reg27 & BIT(7))
 			sio_data->skip_fan |= BIT(2);
 
-		/* Check for pwm4, fan4, pwm5, fan5 */
+		/* Check for fan2, pwm4, fan4, pwm5, fan5 */
 		if (sio_data->type == it8625) {
 			int reg25 = superio_inb(sioaddr, IT87_SIO_GPIO1_REG);
 
+			if (reg29 & BIT(2))
+				sio_data->skip_fan |= BIT(1);
 			if (reg25 & BIT(6))
 				sio_data->skip_fan |= BIT(3);
 			if (reg25 & BIT(5))
 				sio_data->skip_pwm |= BIT(3);
 			if (reg27 & BIT(3))
 				sio_data->skip_pwm |= BIT(4);
-			if (reg27 & BIT(1))
+			if (!(reg27 & BIT(1)))
 				sio_data->skip_fan |= BIT(4);
 		} else {
 			int reg26 = superio_inb(sioaddr, IT87_SIO_GPIO2_REG);
 
+			if (reg2d & BIT(4))
+				sio_data->skip_fan |= BIT(1);
 			if (regd3 & BIT(2))
 				sio_data->skip_pwm |= BIT(3);
 			if (regd3 & BIT(3))
 				sio_data->skip_fan |= BIT(3);
 			if (reg26 & BIT(5))
 				sio_data->skip_pwm |= BIT(4);
-			if (reg26 & BIT(4))
+			/*
+			 * Table 6-1 in datasheet claims that FAN_TAC5 would
+			 * be enabled with 26h[4]=0. This contradicts with the
+			 * information in section 8.3.9 and with feedback from
+			 * users.
+			 */
+			if (!(reg26 & BIT(4)))
 				sio_data->skip_fan |= BIT(4);
 		}
 
@@ -3949,6 +3999,17 @@ static int it87_probe(struct platform_device *pdev)
 	/* Initialize register pointers */
 	it87_init_regs(pdev);
 
+	/*
+	 * We need to disable SMBus before we can read any registers in
+	 * the envmon address space, even if it is for chip identification
+	 * purposes. If the chip has SMBus client support, it likely also has
+	 * multi-page envmon registers, so we have to set the page anyway
+	 * before accessing those registers. Kind of a chicken-and-egg
+	 * problem.
+	 * Fortunately, the chip was already identified through the SIO
+	 * address space, only recent chips are affected, and this is just
+	 * an additional safeguard.
+	 */
 	err = smbus_disable(data);
 	if (err)
 		return err;
@@ -3994,23 +4055,27 @@ static int it87_probe(struct platform_device *pdev)
 	if (has_four_temp(data)) {
 		data->has_temp |= BIT(3);
 	} else if (has_six_temp(data)) {
-		u8 reg = data->read(data, IT87_REG_TEMP456_ENABLE);
+		if (sio_data->type == it8655 || sio_data->type == it8665) {
+			data->has_temp |= BIT(3) | BIT(4) | BIT(5);
+		} else {
+			u8 reg = data->read(data, IT87_REG_TEMP456_ENABLE);
 
-		/* Check for additional temperature sensors */
-		if ((reg & 0x03) >= 0x02)
-			data->has_temp |= BIT(3);
-		if (((reg >> 2) & 0x03) >= 0x02)
-			data->has_temp |= BIT(4);
-		if (((reg >> 4) & 0x03) >= 0x02)
-			data->has_temp |= BIT(5);
+			/* Check for additional temperature sensors */
+			if ((reg & 0x03) >= 0x02)
+				data->has_temp |= BIT(3);
+			if (((reg >> 2) & 0x03) >= 0x02)
+				data->has_temp |= BIT(4);
+			if (((reg >> 4) & 0x03) >= 0x02)
+				data->has_temp |= BIT(5);
 
-		/* Check for additional voltage sensors */
-		if ((reg & 0x03) == 0x01)
-			data->has_in |= BIT(10);
-		if (((reg >> 2) & 0x03) == 0x01)
-			data->has_in |= BIT(11);
-		if (((reg >> 4) & 0x03) == 0x01)
-			data->has_in |= BIT(12);
+			/* Check for additional voltage sensors */
+			if ((reg & 0x03) == 0x01)
+				data->has_in |= BIT(10);
+			if (((reg >> 2) & 0x03) == 0x01)
+				data->has_in |= BIT(11);
+			if (((reg >> 4) & 0x03) == 0x01)
+				data->has_in |= BIT(12);
+		}
 	}
 
 	data->has_beep = !!sio_data->beep_pin;
@@ -4252,6 +4317,7 @@ module_param(fix_pwm_polarity, bool, 0000);
 MODULE_PARM_DESC(fix_pwm_polarity,
 		 "Force PWM polarity to active high (DANGEROUS)");
 MODULE_LICENSE("GPL");
+MODULE_VERSION(IT87_DRIVER_VERSION);
 
 module_init(sm_it87_init);
 module_exit(sm_it87_exit);
